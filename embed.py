@@ -1,30 +1,34 @@
 import os
 from dotenv import load_dotenv
+import supabase
 from supabase.client import Client, create_client
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import SupabaseVectorStore
 from langchain.document_loaders import TextLoader
-from langchain.docstore.document import Document
 
 
 
 load_dotenv()
 
-superbase_url = os.getenv("SUPERBASE_URL")
+superbase_url = os.getenv("SUPABASE_URL")
 superbase_key = os.getenv("SUPABASE_SERVICE_KEY")
+OpenAIEmbeddings.api_key = os.getenv("OPENAI_API_KEY")
 superbase:Client = create_client(superbase_url, superbase_key)
 
 
 # configure these to your liking
 exclude_dir = ['.git', 'node_modules', 'public', 'assets']
-exclude_files = ['package-lock.json', '.DS_Store']
+exclude_files = ['package-lock.json', '.DS_Store', '.gitignore', 'requirements.txt', 'yarn.lock',
+                 'package.json', 'README.md', 'README', 'CHANGELOG.md', 'CHANGELOG', 'CONTRIBUTING.md', 'CONTRIBUTING']
 exclude_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.ico', '.svg', '.webp',
                       '.mp3', '.wav']
 exclude_filenames = ['LICENSE', 'README.md', 'README', 'CHANGELOG.md', 'CHANGELOG', 'CONTRIBUTING.md', 'CONTRIBUTING', 
                         'CODE_OF_CONDUCT.md', 'CODE_OF_CONDUCT', 'SECURITY.md', 'SECURITY', 'PULL_REQUEST_TEMPLATE.md', 'PULL_REQUEST_TEMPLATE',]
 
 documents = []
+
+
 
 
 for rootPath, dirnames, filenames in os.walk('repo'):
@@ -54,10 +58,11 @@ for doc in docs:
 
 embeddings = OpenAIEmbeddings()
 
+
 vector_store = SupabaseVectorStore.from_documents(
     docs,
     embeddings,
-    client=superbase,
+    client=supabase,
     table_name=os.environ.get("TABLE_NAME"),
     
 )
